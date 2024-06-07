@@ -1,0 +1,45 @@
+{% extends 'app/base.html' %}
+{% load static %}
+{% block title %}Buy Now{% endblock title %}
+{% block main-content %}
+<div class="container my-5">
+ <div class="row">
+   <h3>Welcome {{ request.user.username }}</h3>
+   <div class="col-sm-2 border-end">
+     <ul class="list-unstyled">
+       <li class="d-grid"><a href="{% url 'orders' %}" class="btn btn-primary">Orders</a></li>
+     </ul>
+   </div>
+   <div class="col-sm-9 offset-sm-1">
+     <div class="row">
+       {% if orders %}
+         {% for order in orders %}
+           <div class="col-sm-12 mb-4">
+             <div class="card position-relative"> <!-- Add position-relative class to make the container relatively positioned -->
+               <div class="row g-0">
+                 <div class="col-md-3">
+                   <img src="{{ order.product.image.url }}" class="img-fluid rounded-start" alt="Product Image" style="max-width: 132px; max-height: 193px;">
+                 </div>
+                 <div class="col-md-8">
+                   <div class="card-body">
+                     <h5 class="card-title">{{ order.product.title }}</h5>
+                     <span class="badge bg-primary position-absolute top-0 end-0 p-2 m-2">{{ order.status }}</span> 
+                     <p class="card-text">Quantity: {{ order.quantity }}</p>
+                     <p class="card-text">Price: {{ order.price }}</p>
+                     <p class="card-text">Order Date: {{ order.ordered_date }}</p>
+                   </div>
+                 </div>
+               </div>
+             </div>
+           </div>
+         {% endfor %}
+       {% else %}
+         <div class="col-sm-12">
+           <p>No orders placed yet.</p>
+         </div>
+       {% endif %}
+     </div>
+   </div>
+ </div>
+</div>
+{% endblock main-content %}
