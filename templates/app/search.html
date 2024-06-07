@@ -2,27 +2,89 @@
 {% block title %}Search{% endblock title %}
 
 {% block main-content %}
+<style>
 
+    h2 {
+        text-align: center;
+    }
 
+    .product-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+        padding: 0;
+        margin: 0;
+    }
 
+    .product-item {
+        flex: 1 1 calc(25% - 40px); /* Adjust the width and gap as needed */
+        box-sizing: border-box;
+        max-width: 300px; /* Optional: limit the maximum width of each item */
+    }
 
+    .product-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        transition: transform 0.2s;
+    }
 
+    .product-link:hover {
+        transform: scale(1.05);
+    }
+
+    .item {
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        text-align: center;
+        background-color: #fff;
+        height: 100%; /* Ensure items have equal height */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .item img {
+        max-width: 100%;
+        height: 375px; /* Set a fixed height for images */
+        object-fit: cover; /* Ensure the image covers the container without stretching */
+        border-bottom: 1px solid #ddd;
+        margin-bottom: 10px;
+    }
+
+    .fw-bold {
+        font-weight: bold;
+        display: block;
+        margin: 10px 0;
+    }
+
+    .fs-5 {
+        font-size: 1.25rem;
+    }
+</style>
+</head>
+<body>
 <h2>Search Results for "{{ query }}"</h2>
-    {% if products %}
-        <ul>
-            {% for product in products %}
-                <li>{{ product.title }}</li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No products found.</p>
-    {% endif %}
-
-
-
+{% if products %}
+    <div class="product-list">
+        {% for product in products %}
+            <div class="product-item">
+                <a href="{% url 'product-detail' pk=product.id %}" class="product-link">
+                    <div class="item">
+                        <img src="{{ product.image.url }}" alt="{{ product.title }}">
+                        <span class="fw-bold">{{ product.title|truncatewords:3 }}</span>
+                        <br>
+                        <span class="fs-5">${{ product.price }}</span>
+                    </div>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>No products found.</p>
+{% endif %}
+</body>
 
 {% endblock main-content %}
-
-
-
-
