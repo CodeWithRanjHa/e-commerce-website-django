@@ -26,4 +26,7 @@ urlpatterns = [
     path('search/', views.search_bar, name='search'),
     path('get_cart_count/', views.get_cart_count, name='get_cart_count'),
     path('changepassword/', views.change_password, name='changepassword'),
+    path('buynow/', views.buy_now, name='buy_now'),
+
+
 ]

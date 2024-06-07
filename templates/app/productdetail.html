@@ -27,7 +27,11 @@
     <button type="submit" class="btn btn-primary shadow px-5 py-2">Add to Cart</button>
    </form>
    {% endif %}
-   <a href="{% url 'buy-now' %}" class="btn btn-danger shadow px-5 py-2 ms-4">Buy Now</a>
+   <form action="{% url 'buy_now' %}" method="post" class="d-inline">
+    {% csrf_token %}
+    <input type="hidden" name="product_id" value="{{product.id}}" id="product_id">
+    <button type="submit" class="btn btn-danger shadow px-5 py-2 ms-4">Buy Now</button>
+   </form>
    <h5 class="mt-5">Available Offers</h5>
    <ul>
     <li>Bank Offer 5% Unlimited Cashback on Flipkart Axis Bank Credit</li>

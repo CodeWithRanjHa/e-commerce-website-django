@@ -172,9 +172,6 @@ def order_placed(request):
     return redirect('orders')
 
 
-
-
-
 @login_required(login_url='/login/')
 def change_password(request):
  if request.method == 'POST':
@@ -262,6 +259,8 @@ def checkout(request):
     }
     
     return render(request, 'app/checkout.html', context)
+
+
 @login_required(login_url='/login/')
 def user_logout(request):
     logout(request)
@@ -297,3 +296,23 @@ def change_password(request):
             return redirect('profile')  
     return render(request, 'app/changepassword.html')
 
+
+
+def buy_now(request):
+    user = request.user
+    if request.method == "POST":
+        product_id = request.POST.get('product_id')
+        product = get_object_or_404(Product, id=product_id)
+        
+        # Check if the product is already in the cart
+        cart_item, created = Cart.objects.get_or_create(user=user, product=product)
+        
+        if not created:
+            # If the product is already in the cart, just update the quantity
+            cart_item.quantity += 1
+            cart_item.save()
+        
+        # Redirect to the checkout view
+        return redirect('checkout')
+    
+    return redirect('product_detail', pk=product_id)
