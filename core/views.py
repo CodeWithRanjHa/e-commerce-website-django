@@ -297,22 +297,17 @@ def change_password(request):
     return render(request, 'app/changepassword.html')
 
 
-
+@login_required(login_url='/login/')
 def buy_now(request):
     user = request.user
     if request.method == "POST":
         product_id = request.POST.get('product_id')
         product = get_object_or_404(Product, id=product_id)
-        
-        # Check if the product is already in the cart
         cart_item, created = Cart.objects.get_or_create(user=user, product=product)
         
         if not created:
-            # If the product is already in the cart, just update the quantity
             cart_item.quantity += 1
             cart_item.save()
-        
-        # Redirect to the checkout view
         return redirect('checkout')
     
     return redirect('product_detail', pk=product_id)
