@@ -115,9 +115,6 @@ def minus_cart(request):
         return JsonResponse({'status': 'ok', 'quantity': cart_item.quantity, 'total_amount': total_amount, 'amount':amount})
         
 
-def buy_now(request):
- return render(request, 'app/buynow.html')
-
 
 @login_required(login_url='/login/')
 def profile(request):
@@ -162,35 +159,25 @@ def orders(request):
 def order_placed(request):
     user = request.user
     customer_id = request.GET.get("customer_id")
-    customer = Customer.objects.get(id=customer_id)
-    carts = Cart.objects.filter(user=user)
-    for cart in carts:
-        product_price = cart.product.price  
-        OrderPlaced(user=user, customer=customer, product=cart.product, quantity=cart.quantity, price=str(product_price * cart.quantity + 5)).save()
-        cart.delete()
+    customer = get_object_or_404(Customer, id=customer_id)
+    
+    product_id = request.GET.get("product_id")
+    quantity = int(request.GET.get("quantity", 1))
+
+    if product_id:
+        product = get_object_or_404(Product, id=product_id)
+        product_price = product.price  
+        OrderPlaced.objects.create(user=user, customer=customer, product=product, quantity=quantity, price=str(product_price * quantity + 5))
+    else:
+        carts = Cart.objects.filter(user=user)
+        for cart in carts:
+            product_price = cart.product.price  
+            OrderPlaced.objects.create(user=user, customer=customer, product=cart.product, quantity=cart.quantity, price=str(product_price * cart.quantity + 5))
+            cart.delete()
         print('OrderPlaced DONE')
+
     return redirect('orders')
 
-
-@login_required(login_url='/login/')
-def change_password(request):
- if request.method == 'POST':
-        current_password = request.POST.get('current_password')
-        new_password = request.POST.get('new_password')
-        confirm_password = request.POST.get('confirm_password')
-
-        if not request.user.check_password(current_password):
-            messages.error(request, 'Current password is incorrect.')
-        elif new_password != confirm_password:
-            messages.error(request, 'New passwords do not match.')
-        
-        else:
-            request.user.set_password(new_password)
-            request.user.save()
-            update_session_auth_hash(request, request.user)  
-            messages.success(request, 'Your password was successfully updated!')
-            return redirect('password_change_done')
- return render(request, 'app/changepassword.html')
 
 def mobile(request):
  return render(request, 'app/mobile.html')
@@ -231,31 +218,37 @@ def customerregistration(request):
     return render(request, 'app/customerregistration.html', {'form': form})
 
 @login_required(login_url='/login/')
-def checkout(request):
+def checkout(request, product_id=None, quantity=1):
     user = request.user
     addresses = Customer.objects.filter(user=user)
-    cart_items = Cart.objects.filter(user=user)
     
-    order_summary = []
-    total_amount = 0
+    if request.method == "POST":
+        address_id = request.POST.get('customer_id')
+        return redirect(reverse('order_placed') + f'?customer_id={address_id}&product_id={product_id}&quantity={quantity}')
     
-    for item in cart_items:
-        product = item.product
-        quantity = item.quantity
-        price = product.price
-        total_price = price * quantity
-        total_amount += total_price
-        
-        order_summary.append({
+    if product_id:
+        product = get_object_or_404(Product, id=product_id)
+        order_summary = [{
             'product': product,
             'quantity': quantity,
-            'total_price': total_price,
-        })
-    
+            'total_price': product.price * quantity,
+        }]
+        total_amount = product.price * quantity
+    else:
+        cart_items = Cart.objects.filter(user=user)
+        order_summary = [{
+            'product': item.product,
+            'quantity': item.quantity,
+            'total_price': item.product.price * item.quantity,
+        } for item in cart_items]
+        total_amount = sum(item['total_price'] for item in order_summary)
+
     context = {
         'addresses': addresses,
         'order_summary': order_summary,
         'total_amount': total_amount,
+        'product_id': product_id,
+        'quantity': quantity,
     }
     
     return render(request, 'app/checkout.html', context)
@@ -303,11 +296,6 @@ def buy_now(request):
     if request.method == "POST":
         product_id = request.POST.get('product_id')
         product = get_object_or_404(Product, id=product_id)
-        cart_item, created = Cart.objects.get_or_create(user=user, product=product)
-        
-        if not created:
-            cart_item.quantity += 1
-            cart_item.save()
-        return redirect('checkout')
+        return redirect('checkout_with_product', product_id=product.id, quantity=1)
     
-    return redirect('product_detail', pk=product_id)
+    

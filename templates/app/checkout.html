@@ -23,7 +23,8 @@
   <div class="col-sm-4 offset-sm-1">
     <h4>Select Shipping Address</h4>
     <hr>
-    <form action="{% url "order_placed" %}">
+    <form method="POST" action="">
+      {% csrf_token %}
       <!-- Displaying shipping addresses dynamically -->
       {% for address in addresses %}
       <div class="card mb-3">
@@ -35,12 +36,16 @@
         </div>
       </div>
       <div class="form-check mt-2 mb-5">
-        <input class="form-check-input" type="radio" name="customer_id" value="{{ address.id }}">
+        <input class="form-check-input" type="radio" name="customer_id" value="{{ address.id }}" required>
         <label class="form-check-label fw-bold" for="">{{ address.name }}</label>
       </div>
       {% endfor %}
+      {% if product_id and quantity %}
+        <input type="hidden" name="product_id" value="{{ product_id }}">
+        <input type="hidden" name="quantity" value="{{ quantity }}">
+      {% endif %}
       <div class="text-end">
-        <button type="submit" class="btn btn-warning mt-3 px-5 fw-bold" >Continue</button>
+        <button type="submit" class="btn btn-warning mt-3 px-5 fw-bold">Continue</button>
       </div>
     </form>
   </div>
